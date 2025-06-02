@@ -48,9 +48,8 @@ All analyses were conducted in **R (v4.1.2)** using:
 ## Files in this Repository
 
 - `README.md` — Overview of the study  
-- `code/` — R scripts for data preparation, MR analysis, and plotting (to be added)  
-- `figures/` — MR scatter plots, forest plots, funnel plots (optional upload)  
-- `data/` — (Optional) Sample harmonized SNP datasets, if allowed  
+-  `code/prepare_breast_cancer_data.R` — Prepares and formats breast cancer GWAS summary statistics using MungeSumstats
+- `code/run_mr_analysis.R` — Performs MR analysis, sensitivity tests, and plots
 
 ## Key Results
 
