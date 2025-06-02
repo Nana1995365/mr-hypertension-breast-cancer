@@ -1,0 +1,105 @@
+# ------------------------------------------------
+# MR Analysis: Hypertension → Breast Cancer Risk
+# ------------------------------------------------
+
+# Load required packages
+library(TwoSampleMR)
+library(MRInstruments)
+library(MRPRESSO)
+library(MendelianRandomization)
+library(ggplot2)
+library(tidyverse)
+library(MVMR)
+library(ieugwasr)
+library(magrittr)
+
+# ----------------------------
+# STEP 1: Load and Clump Exposure Data
+# ----------------------------
+# Assumes `exposure_dat` is already created via read_exposure_data() or similar
+clumped_exposure <- clump_data(exposure_dat)
+
+# ----------------------------
+# STEP 2: Extract Outcome Data
+# ----------------------------
+outcome_dat <- extract_outcome_data(
+  snps = clumped_exposure$SNP,
+  outcomes = "ebi-a-GCST90018862"  # Replace with correct outcome ID or data
+)
+
+# ----------------------------
+# STEP 3: Harmonise Exposure and Outcome
+# ----------------------------
+harmonised_dat <- harmonise_data(clumped_exposure, outcome_dat)
+
+# ----------------------------
+# STEP 4: Primary MR Analysis
+# ----------------------------
+res <- mr(harmonised_dat)
+print(res)
+
+# Odds Ratios
+or_res <- generate_odds_ratios(res)
+print(or_res)
+
+# IVW using MendelianRandomization package
+dat_mrinput <- dat_to_MRInput(harmonised_dat)
+ivw_results <- MendelianRandomization::mr_ivw(dat_mrinput[[1]])
+print(ivw_results)
+
+# ----------------------------
+# STEP 5: MR-PRESSO
+# ----------------------------
+mr_presso_res <- mr_presso(
+  BetaOutcome = "beta.outcome",
+  BetaExposure = "beta.exposure",
+  SdOutcome = "se.outcome",
+  SdExposure = "se.exposure",
+  OUTLIERtest = TRUE,
+  DISTORTIONtest = TRUE,
+  data = harmonised_dat,
+  NbDistribution = 1000,
+  SignifThreshold = 0.05
+)
+print(mr_presso_res)
+
+# ----------------------------
+# STEP 6: Sensitivity Analyses
+# ----------------------------
+
+# Heterogeneity test
+hetero <- mr_heterogeneity(harmonised_dat)
+print(hetero)
+
+# Pleiotropy test
+pleio <- mr_pleiotropy_test(harmonised_dat)
+print(pleio)
+
+# Leave-one-out analysis
+res_loo <- mr_leaveoneout(harmonised_dat)
+print(res_loo)
+
+# Steiger directionality test
+direction <- directionality_test(harmonised_dat)
+print(direction)
+
+# ----------------------------
+# STEP 7: Visualizations
+# ----------------------------
+
+# Scatter plot
+p1 <- mr_scatter_plot(res, harmonised_dat)
+print(p1[[1]])
+
+# Forest plot
+res_single <- mr_singlesnp(harmonised_dat)
+p2 <- mr_forest_plot(res_single)
+print(p2[[1]])
+
+# Leave-one-out plot
+p3 <- mr_leaveoneout_plot(res_loo)
+print(p3[[1]])
+
+# Funnel plot
+p4 <- mr_funnel_plot(res_single)
+print(p4[[1]])
